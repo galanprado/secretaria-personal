@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Secretaria</title>
+    <title>Mi Secretaria - Supabase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
@@ -12,6 +13,7 @@
         
         .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
         .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .status { font-size: 12px; opacity: 0.9; }
         
         .tabs { display: flex; background: white; border-bottom: 1px solid #ddd; }
         .tab { flex: 1; padding: 15px; border: none; background: white; cursor: pointer; font-size: 14px; color: #666; border-bottom: 3px solid transparent; }
@@ -65,6 +67,7 @@
     <div class="main">
         <div class="header">
             <h1>📊 Mi Secretaria</h1>
+            <div class="status" id="status">🔄 Conectando...</div>
         </div>
 
         <div class="tabs">
@@ -112,64 +115,137 @@
 
     <script>
         const app = {
+            supabase: null,
             data: { tasks: [], meetings: [] },
+            deviceId: localStorage.getItem('deviceId') || 'device_' + Math.random().toString(36).substr(2, 9),
 
-            init() {
-                this.load();
-                this.render();
-                this.addMsg('bot', '¡Hola! Presiona + para agregar tareas o reuniones.');
+            async init() {
+                localStorage.setItem('deviceId', this.deviceId);
+                
+                const SUPABASE_URL = 'https://epfqrdjzvtymbaprtwtrvz.supabase.co';
+                const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwZnFyZGp6dnR5bWJhcHJ0d3RydnoiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcxNDk4NjMyMiwiZXhwIjoxNzMwNTM4MzIyfQ.7bI5YtdTZTNFYkMgSE4nfO8R3cXnPsWDCW1pf3Ks5YU';
+                
+                try {
+                    this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    await this.loadData();
+                    this.setupRealtimeListeners();
+                    this.updateStatus('✅ Conectado');
+                    this.addMsg('bot', '¡Hola! Presiona + para agregar tareas o reuniones. Los cambios se sincronizan en tiempo real.');
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.updateStatus('❌ Error de conexión');
+                }
             },
 
-            load() {
-                const saved = localStorage.getItem('secretaria');
-                if (saved) this.data = JSON.parse(saved);
+            async loadData() {
+                try {
+                    this.updateStatus('📥 Cargando...');
+                    
+                    const { data: tasks, error: tasksError } = await this.supabase
+                        .from('tareas')
+                        .select('*');
+                    if (tasksError) throw tasksError;
+                    this.data.tasks = tasks || [];
+
+                    const { data: meetings, error: meetingsError } = await this.supabase
+                        .from('reuniones')
+                        .select('*');
+                    if (meetingsError) throw meetingsError;
+                    this.data.meetings = meetings || [];
+
+                    this.render();
+                    this.updateStatus('✅ Conectado');
+                } catch (error) {
+                    console.error('Error cargando:', error);
+                    this.updateStatus('❌ Error');
+                }
             },
 
-            save() {
-                localStorage.setItem('secretaria', JSON.stringify(this.data));
+            setupRealtimeListeners() {
+                this.supabase.channel('tareas')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'tareas' }, () => {
+                        this.loadData();
+                    })
+                    .subscribe();
+
+                this.supabase.channel('reuniones')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'reuniones' }, () => {
+                        this.loadData();
+                    })
+                    .subscribe();
             },
 
-            addNew() {
+            async addNew() {
                 const type = prompt('1=Tarea\n2=Reunión');
                 if (type === '1') {
                     const title = prompt('Título:');
                     if (title) {
-                        const priority = prompt('Prioridad:\nhigh = Alto\nmedium = Medio\nlow = Bajo', 'medium');
-                        this.data.tasks.push({ id: Date.now(), title, priority: priority || 'medium', done: false });
-                        this.save();
-                        this.render();
+                        const priority = prompt('Prioridad:\nhigh = Alto\nmedium = Medio\nlow = Bajo', 'medium') || 'medium';
+                        try {
+                            const { error } = await this.supabase
+                                .from('tareas')
+                                .insert([{ titulo: title, prioridad: priority, completada: false }]);
+                            if (error) throw error;
+                        } catch (error) {
+                            console.error('Error:', error);
+                            alert('Error al agregar tarea');
+                        }
                     }
                 } else if (type === '2') {
                     const title = prompt('Título:');
                     if (title) {
                         const time = prompt('Hora:');
                         const people = prompt('Participantes:');
-                        this.data.meetings.push({ id: Date.now(), title, time, people });
-                        this.save();
-                        this.render();
+                        try {
+                            const { error } = await this.supabase
+                                .from('reuniones')
+                                .insert([{ titulo: title, hora: time, participantes: people }]);
+                            if (error) throw error;
+                        } catch (error) {
+                            console.error('Error:', error);
+                            alert('Error al agregar reunión');
+                        }
                     }
                 }
             },
 
-            toggleTask(id) {
+            async toggleTask(id) {
                 const task = this.data.tasks.find(t => t.id === id);
                 if (task) {
-                    task.done = !task.done;
-                    this.save();
-                    this.render();
+                    try {
+                        const { error } = await this.supabase
+                            .from('tareas')
+                            .update({ completada: !task.completada })
+                            .eq('id', id);
+                        if (error) throw error;
+                    } catch (error) {
+                        console.error('Error:', error);
+                    }
                 }
             },
 
-            deleteTask(id) {
-                this.data.tasks = this.data.tasks.filter(t => t.id !== id);
-                this.save();
-                this.render();
+            async deleteTask(id) {
+                try {
+                    const { error } = await this.supabase
+                        .from('tareas')
+                        .delete()
+                        .eq('id', id);
+                    if (error) throw error;
+                } catch (error) {
+                    console.error('Error:', error);
+                }
             },
 
-            deleteMeeting(id) {
-                this.data.meetings = this.data.meetings.filter(m => m.id !== id);
-                this.save();
-                this.render();
+            async deleteMeeting(id) {
+                try {
+                    const { error } = await this.supabase
+                        .from('reuniones')
+                        .delete()
+                        .eq('id', id);
+                    if (error) throw error;
+                } catch (error) {
+                    console.error('Error:', error);
+                }
             },
 
             render() {
@@ -180,10 +256,10 @@
 
             renderTasks() {
                 const html = this.data.tasks.length ? this.data.tasks.map(t => `
-                    <div class="task-item ${t.done ? 'done' : ''}">
-                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="app.toggleTask(${t.id})">
-                        <span class="task-title">${t.title}</span>
-                        <span class="priority ${t.priority}">${t.priority.toUpperCase()}</span>
+                    <div class="task-item ${t.completada ? 'done' : ''}">
+                        <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="app.toggleTask(${t.id})">
+                        <span class="task-title">${t.titulo}</span>
+                        <span class="priority ${t.prioridad}">${t.prioridad.toUpperCase()}</span>
                         <button class="del" onclick="app.deleteTask(${t.id})">×</button>
                     </div>
                 `).join('') : '<div class="empty">Sin tareas 🎉</div>';
@@ -193,8 +269,8 @@
             renderMeetings() {
                 const html = this.data.meetings.length ? this.data.meetings.map(m => `
                     <div class="meeting-item">
-                        <div class="meeting-title">${m.title}</div>
-                        <div class="meeting-info">${m.time} • ${m.people}</div>
+                        <div class="meeting-title">${m.titulo}</div>
+                        <div class="meeting-info">${m.hora} • ${m.participantes}</div>
                         <button class="del" style="margin-top: 10px;" onclick="app.deleteMeeting(${m.id})">Eliminar</button>
                     </div>
                 `).join('') : '<div class="empty">Sin reuniones</div>';
@@ -203,10 +279,14 @@
 
             updateStats() {
                 const total = this.data.tasks.length;
-                const done = this.data.tasks.filter(t => t.done).length;
+                const done = this.data.tasks.filter(t => t.completada).length;
                 document.getElementById('total').textContent = total;
                 document.getElementById('completed').textContent = done;
                 document.getElementById('pending').textContent = total - done;
+            },
+
+            updateStatus(text) {
+                document.getElementById('status').textContent = text;
             },
 
             switchTab(tab) {
@@ -239,16 +319,16 @@
                     response = 'Presiona el botón + para agregar una tarea.';
                 } else if (msg.includes('diario') || msg.includes('hoy')) {
                     const total = this.data.tasks.length;
-                    const done = this.data.tasks.filter(t => t.done).length;
+                    const done = this.data.tasks.filter(t => t.completada).length;
                     response = `📊 Hoy:\n${total} tareas\n${done} completadas\n${total - done} pendientes`;
                 } else if (msg.includes('siguiente') || msg.includes('próximo')) {
-                    const pending = this.data.tasks.filter(t => !t.done);
-                    response = pending.length ? '⏭️ ' + pending.slice(0, 3).map(t => t.title).join(', ') : '✅ ¡Estás al día!';
+                    const pending = this.data.tasks.filter(t => !t.completada);
+                    response = pending.length ? '⏭️ ' + pending.slice(0, 3).map(t => t.titulo).join(', ') : '✅ ¡Estás al día!';
                 } else if (msg.includes('urgente')) {
-                    const high = this.data.tasks.filter(t => t.priority === 'high' && !t.done);
-                    response = high.length ? '🔴 ' + high.map(t => t.title).join(', ') : '✨ Sin urgentes';
+                    const high = this.data.tasks.filter(t => t.prioridad === 'high' && !t.completada);
+                    response = high.length ? '🔴 ' + high.map(t => t.titulo).join(', ') : '✨ Sin urgentes';
                 } else if (msg.includes('resumen') || msg.includes('reunión')) {
-                    response = this.data.meetings.length ? '📋 ' + this.data.meetings.map(m => `${m.title} (${m.time})`).join(', ') : '📭 Sin reuniones';
+                    response = this.data.meetings.length ? '📋 ' + this.data.meetings.map(m => `${m.titulo} (${m.hora})`).join(', ') : '📭 Sin reuniones';
                 } else {
                     response = 'Puedo ayudarte con tareas, reuniones y evaluar tu día. ¿Qué necesitas?';
                 }
