@@ -10,327 +10,56 @@
     <title>Mi Secretaria</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            position: fixed;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-        }
-
-        .main-screen {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding-top: max(0px, env(safe-area-inset-top));
-            padding-bottom: max(0px, env(safe-area-inset-bottom));
-            padding-left: max(0px, env(safe-area-inset-left));
-            padding-right: max(0px, env(safe-area-inset-right));
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 20px;
-            padding-top: calc(15px + max(0px, env(safe-area-inset-top)));
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            flex-shrink: 0;
-        }
-
-        .header h1 {
-            font-size: 22px;
-            font-weight: 600;
-        }
-
-        .status {
-            font-size: 11px;
-            margin-top: 5px;
-            opacity: 0.9;
-        }
-
-        .tabs {
-            display: flex;
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            flex-shrink: 0;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            background: white;
-            color: #666;
-            font-size: 14px;
-            font-weight: 500;
-            border-bottom: 3px solid transparent;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .tab-btn.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-
-        .content {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 15px 20px;
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .section {
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            color: #333;
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .task-item, .meeting-item {
-            background: white;
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .task-item.completed {
-            opacity: 0.6;
-            border-left-color: #28a745;
-        }
-
-        .task-item.completed .task-text {
-            text-decoration: line-through;
-        }
-
-        .task-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-
-        .task-text {
-            flex: 1;
-            font-size: 14px;
-        }
-
-        .task-priority {
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .priority-high {
-            background: #ff6b6b;
-            color: white;
-        }
-
-        .priority-medium {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .priority-low {
-            background: #28a745;
-            color: white;
-        }
-
-        .delete-btn {
-            background: #ff6b6b;
-            color: white;
-            padding: 6px 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-
-        .empty-state {
-            color: #999;
-            font-style: italic;
-            padding: 20px;
-            text-align: center;
-            background: #f9f9f9;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-
-        .daily-summary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-
-        .summary-stat {
-            display: flex;
-            justify-content: space-between;
-            margin: 8px 0;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 14px;
-        }
-
-        .summary-stat:last-child {
-            border-bottom: none;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .message {
-            padding: 10px 12px;
-            border-radius: 12px;
-            max-width: 90%;
-            word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .message.user {
-            align-self: flex-end;
-            background: #667eea;
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.assistant {
-            align-self: flex-start;
-            background: #f0f0f0;
-            color: #333;
-            border-bottom-left-radius: 4px;
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 8px;
-            padding: 15px 20px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
-            flex-shrink: 0;
-            padding-bottom: calc(15px + max(0px, env(safe-area-inset-bottom)));
-        }
-
-        .chat-input-area input {
-            flex: 1;
-            padding: 10px 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 20px;
-            font-size: 14px;
-            background: #f5f5f5;
-        }
-
-        .chat-input-area button {
-            width: 36px;
-            height: 36px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin: 10px 0;
-        }
-
-        .action-btn {
-            padding: 12px;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.3s;
-            color: #333;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .action-btn:active {
-            background: #f0f0f0;
-        }
-
-        .add-btn {
-            position: fixed;
-            bottom: calc(20px + max(0px, env(safe-area-inset-bottom)));
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 28px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        .add-btn:active {
-            transform: scale(0.95);
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; position: fixed; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+        
+        .main-screen { display: flex; flex-direction: column; height: 100%; width: 100%; }
+        
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .header h1 { font-size: 22px; font-weight: 600; }
+        .status { font-size: 11px; margin-top: 5px; opacity: 0.9; }
+        
+        .tabs { display: flex; background: white; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: white; color: #666; font-size: 14px; font-weight: 500; border-bottom: 3px solid transparent; cursor: pointer; }
+        .tab-btn.active { color: #667eea; border-bottom-color: #667eea; }
+        
+        .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .tab-content { display: none; padding: 15px 20px; }
+        .tab-content.active { display: block; }
+        
+        .section { margin-bottom: 20px; }
+        .section-title { color: #333; font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+        
+        .task-item, .meeting-item { background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #667eea; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .task-item.completed { opacity: 0.6; border-left-color: #28a745; }
+        .task-item.completed .task-text { text-decoration: line-through; }
+        .task-item input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        .task-text { flex: 1; font-size: 14px; }
+        .task-priority { font-size: 11px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
+        .priority-high { background: #ff6b6b; color: white; }
+        .priority-medium { background: #ffc107; color: #333; }
+        .priority-low { background: #28a745; color: white; }
+        .delete-btn { background: #ff6b6b; color: white; padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        
+        .empty-state { color: #999; font-style: italic; padding: 20px; text-align: center; background: #f9f9f9; border-radius: 8px; margin: 10px 0; }
+        
+        .daily-summary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .summary-stat { display: flex; justify-content: space-between; margin: 8px 0; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.2); font-size: 14px; }
+        .summary-stat:last-child { border-bottom: none; }
+        
+        .chat-messages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+        .message { padding: 10px 12px; border-radius: 12px; max-width: 90%; word-wrap: break-word; font-size: 14px; line-height: 1.4; }
+        .message.user { align-self: flex-end; background: #667eea; color: white; }
+        .message.assistant { align-self: flex-start; background: #f0f0f0; color: #333; }
+        
+        .chat-input-area { display: flex; gap: 8px; padding: 15px 20px; background: white; border-top: 1px solid #e0e0e0; flex-shrink: 0; }
+        .chat-input-area input { flex: 1; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 14px; background: #f5f5f5; }
+        .chat-input-area button { width: 36px; height: 36px; background: #667eea; color: white; border: none; border-radius: 50%; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+        
+        .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+        .action-btn { padding: 12px; background: white; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-size: 12px; color: #333; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        
+        .add-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 28px; box-shadow: 0 4px 12px rgba(102,126,234,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
     </style>
 </head>
 <body>
@@ -343,40 +72,25 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('dashboard')">📋 Tareas</button>
-            <button class="tab-btn" onclick="switchTab('meetings')">📅 Reuniones</button>
-            <button class="tab-btn" onclick="switchTab('chat')">💬 Chat</button>
+            <button class="tab-btn active" onclick="window.switchTab('dashboard')">📋 Tareas</button>
+            <button class="tab-btn" onclick="window.switchTab('meetings')">📅 Reuniones</button>
+            <button class="tab-btn" onclick="window.switchTab('chat')">💬 Chat</button>
         </div>
 
         <div class="content">
-            <!-- TAB: DASHBOARD -->
             <div id="dashboard" class="tab-content active">
                 <div class="section">
                     <div class="section-title">✅ Tareas Hoy</div>
                     <div id="tasksList"></div>
                 </div>
-
                 <div class="daily-summary">
-                    <div class="summary-stat">
-                        <span>Tareas Totales:</span>
-                        <strong id="totalTasks">0</strong>
-                    </div>
-                    <div class="summary-stat">
-                        <span>Completadas:</span>
-                        <strong id="completedTasks">0</strong>
-                    </div>
-                    <div class="summary-stat">
-                        <span>Pendientes:</span>
-                        <strong id="pendingTasks">0</strong>
-                    </div>
-                    <div class="summary-stat">
-                        <span>Prioridad Alta:</span>
-                        <strong id="highPriority">0</strong>
-                    </div>
+                    <div class="summary-stat"><span>Tareas Totales:</span><strong id="totalTasks">0</strong></div>
+                    <div class="summary-stat"><span>Completadas:</span><strong id="completedTasks">0</strong></div>
+                    <div class="summary-stat"><span>Pendientes:</span><strong id="pendingTasks">0</strong></div>
+                    <div class="summary-stat"><span>Prioridad Alta:</span><strong id="highPriority">0</strong></div>
                 </div>
             </div>
 
-            <!-- TAB: MEETINGS -->
             <div id="meetings" class="tab-content">
                 <div class="section">
                     <div class="section-title">📅 Reuniones Programadas</div>
@@ -384,205 +98,159 @@
                 </div>
             </div>
 
-            <!-- TAB: CHAT -->
             <div id="chat" class="tab-content" style="display: flex; flex-direction: column; padding: 0;">
                 <div class="chat-messages" id="messages"></div>
                 <div class="action-buttons" style="margin: 0 15px; margin-top: auto;">
-                    <button class="action-btn" onclick="quickCommand('diario')">📋 Mi día</button>
-                    <button class="action-btn" onclick="quickCommand('siguiente')">⏭️ Qué sigue</button>
-                    <button class="action-btn" onclick="quickCommand('urgente')">🔴 Urgentes</button>
-                    <button class="action-btn" onclick="quickCommand('resumen')">📝 Reuniones</button>
+                    <button class="action-btn" onclick="window.quickCommand('diario')">📋 Mi día</button>
+                    <button class="action-btn" onclick="window.quickCommand('siguiente')">⏭️ Qué sigue</button>
+                    <button class="action-btn" onclick="window.quickCommand('urgente')">🔴 Urgentes</button>
+                    <button class="action-btn" onclick="window.quickCommand('resumen')">📝 Reuniones</button>
                 </div>
                 <div class="chat-input-area">
-                    <input 
-                        type="text" 
-                        id="chatInput" 
-                        placeholder="Cuéntame..." 
-                        onkeypress="if(event.key==='Enter') sendMessage()"
-                    >
-                    <button onclick="sendMessage()">↑</button>
+                    <input type="text" id="chatInput" placeholder="Cuéntame..." onkeypress="if(event.key==='Enter') window.sendMessage()">
+                    <button onclick="window.sendMessage()">↑</button>
                 </div>
             </div>
         </div>
 
-        <button class="add-btn" onclick="showAddMenu()">+</button>
+        <button class="add-btn" onclick="window.showAddMenu()">+</button>
     </div>
 
     <script>
-        // CONFIGURACIÓN SUPABASE
         const SUPABASE_URL = 'https://epfqrdjzvtymbaprtwtrvz.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwZnFyZGp6dnR5bWJhcHJ0d3RydnoiLCJyb2xlIjoiYW9ubiIsImlhdCI6MTcxNDk4NjMyMiwiZXhwIjoxNzMwNTM4MzIyfQ.7bI5YtdTZTNFYkMgSE4nfO8R3cXnPsWDCW1pf3Ks5YU';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwZnFyZGp6dnR5bWJhcHJ0d3RydnoiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcxNDk4NjMyMiwiZXhwIjoxNzMwNTM4MzIyfQ.7bI5YtdTZTNFYkMgSE4nfO8R3cXnPsWDCW1pf3Ks5YU';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let state = {
-            tasks: [],
-            meetings: [],
-            chatHistory: []
+        let state = { tasks: [], meetings: [], chatHistory: [] };
+
+        window.init = async function() {
+            try {
+                await window.loadData();
+                window.setupRealTimeSubscriptions();
+                window.addMessageToChat('assistant', '¡Hola! 👋 Tu secretaria está lista.');
+            } catch (error) {
+                console.error('Error:', error);
+                window.updateSyncStatus('❌ Error');
+            }
         };
 
-        // INICIALIZAR
-        async function init() {
+        window.loadData = async function() {
             try {
-                await loadData();
-                setupRealTimeSubscriptions();
-                addMessageToChat('assistant', '¡Hola! 👋 Tu secretaria está lista. Cualquier cambio se sincroniza automáticamente.');
-            } catch (error) {
-                console.error('Error:', error);
-                updateSyncStatus('❌ Error de conexión');
-            }
-        }
-
-        // CARGAR DATOS
-        async function loadData() {
-            try {
-                updateSyncStatus('Cargando...');
-                
+                window.updateSyncStatus('Cargando...');
                 const { data: tasks } = await supabase.from('tareas').select('*');
                 state.tasks = tasks || [];
-
                 const { data: meetings } = await supabase.from('reuniones').select('*');
                 state.meetings = meetings || [];
-
-                renderDashboard();
-                updateSyncStatus('✅ Conectado');
+                window.renderDashboard();
+                window.updateSyncStatus('✅ Conectado');
             } catch (error) {
                 console.error('Error:', error);
-                updateSyncStatus('❌ Error');
+                window.updateSyncStatus('❌ Error');
             }
-        }
+        };
 
-        // SINCRONIZACIÓN EN TIEMPO REAL
-        function setupRealTimeSubscriptions() {
-            supabase.channel('tareas-changes')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'tareas' }, () => loadData())
-                .subscribe();
+        window.setupRealTimeSubscriptions = function() {
+            supabase.channel('tareas-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'tareas' }, () => window.loadData()).subscribe();
+            supabase.channel('reuniones-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'reuniones' }, () => window.loadData()).subscribe();
+        };
 
-            supabase.channel('reuniones-changes')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'reuniones' }, () => loadData())
-                .subscribe();
-        }
-
-        // GUARDAR TAREA
-        async function saveTask(task) {
+        window.saveTask = async function(task) {
             try {
-                updateSyncStatus('Sincronizando...');
                 if (task.id) {
                     await supabase.from('tareas').update(task).eq('id', task.id);
                 } else {
                     const { data } = await supabase.from('tareas').insert([task]).select();
                     if (data) state.tasks.push(data[0]);
                 }
-                renderDashboard();
-                updateSyncStatus('✅ Conectado');
+                window.renderDashboard();
             } catch (error) {
                 console.error('Error:', error);
-                updateSyncStatus('❌ Error');
             }
-        }
+        };
 
-        // ELIMINAR TAREA
-        async function deleteTask(id) {
+        window.deleteTask = async function(id) {
             try {
                 await supabase.from('tareas').delete().eq('id', id);
                 state.tasks = state.tasks.filter(t => t.id !== id);
-                renderDashboard();
+                window.renderDashboard();
             } catch (error) {
                 console.error('Error:', error);
             }
-        }
+        };
 
-        // GUARDAR REUNIÓN
-        async function saveMeeting(meeting) {
+        window.saveMeeting = async function(meeting) {
             try {
-                updateSyncStatus('Sincronizando...');
                 if (meeting.id) {
                     await supabase.from('reuniones').update(meeting).eq('id', meeting.id);
                 } else {
                     const { data } = await supabase.from('reuniones').insert([meeting]).select();
                     if (data) state.meetings.push(data[0]);
                 }
-                renderDashboard();
-                updateSyncStatus('✅ Conectado');
+                window.renderDashboard();
             } catch (error) {
                 console.error('Error:', error);
             }
-        }
+        };
 
-        // ELIMINAR REUNIÓN
-        async function deleteMeeting(id) {
+        window.deleteMeeting = async function(id) {
             try {
                 await supabase.from('reuniones').delete().eq('id', id);
                 state.meetings = state.meetings.filter(m => m.id !== id);
-                renderDashboard();
+                window.renderDashboard();
             } catch (error) {
                 console.error('Error:', error);
             }
-        }
+        };
 
-        // ACTUALIZAR ESTADO
-        function updateSyncStatus(status) {
+        window.updateSyncStatus = function(status) {
             document.getElementById('syncStatus').textContent = status;
-        }
+        };
 
-        // CAMBIAR TAB
-        function switchTab(tab) {
+        window.switchTab = function(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tab).classList.add('active');
-            document.querySelector(`button[onclick="switchTab('${tab}')"]`).classList.add('active');
-        }
+            document.querySelector(`button[onclick="window.switchTab('${tab}')"]`).classList.add('active');
+        };
 
-        // RENDERIZAR DASHBOARD
-        function renderDashboard() {
-            const tasksHTML = state.tasks.length ? 
-                state.tasks.map(task => `
-                    <div class="task-item ${task.completada ? 'completed' : ''}">
-                        <input type="checkbox" ${task.completada ? 'checked' : ''} onchange="toggleTask('${task.id}')">
-                        <span class="task-text">${task.titulo}</span>
-                        <span class="task-priority priority-${task.prioridad}">${task.prioridad.toUpperCase()}</span>
-                        <button class="delete-btn" onclick="deleteTask('${task.id}')">×</button>
-                    </div>
-                `).join('') :
-                '<div class="empty-state">Sin tareas 🎉</div>';
-            
+        window.renderDashboard = function() {
+            const tasksHTML = state.tasks.length ? state.tasks.map(task => `
+                <div class="task-item ${task.completada ? 'completed' : ''}">
+                    <input type="checkbox" ${task.completada ? 'checked' : ''} onchange="window.toggleTask('${task.id}')">
+                    <span class="task-text">${task.titulo}</span>
+                    <span class="task-priority priority-${task.prioridad}">${task.prioridad.toUpperCase()}</span>
+                    <button class="delete-btn" onclick="window.deleteTask('${task.id}')">×</button>
+                </div>
+            `).join('') : '<div class="empty-state">Sin tareas 🎉</div>';
             document.getElementById('tasksList').innerHTML = tasksHTML;
 
-            const meetingsHTML = state.meetings.length ?
-                state.meetings.map(meeting => `
-                    <div class="meeting-item">
-                        <div style="flex: 1;">
-                            <strong style="font-size: 15px;">${meeting.titulo}</strong><br>
-                            <small style="color: #666; font-size: 12px;">${meeting.hora} • ${meeting.participantes}</small>
-                        </div>
-                        <button class="delete-btn" onclick="deleteMeeting('${meeting.id}')">×</button>
-                    </div>
-                `).join('') :
-                '<div class="empty-state">Sin reuniones</div>';
-
+            const meetingsHTML = state.meetings.length ? state.meetings.map(meeting => `
+                <div class="meeting-item">
+                    <div style="flex: 1;"><strong>${meeting.titulo}</strong><br><small style="color: #666;">${meeting.hora} • ${meeting.participantes}</small></div>
+                    <button class="delete-btn" onclick="window.deleteMeeting('${meeting.id}')">×</button>
+                </div>
+            `).join('') : '<div class="empty-state">Sin reuniones</div>';
             document.getElementById('meetingsList').innerHTML = meetingsHTML;
 
             const total = state.tasks.length;
             const completed = state.tasks.filter(t => t.completada).length;
             const pending = total - completed;
             const highPriority = state.tasks.filter(t => t.prioridad === 'high' && !t.completada).length;
-
             document.getElementById('totalTasks').textContent = total;
             document.getElementById('completedTasks').textContent = completed;
             document.getElementById('pendingTasks').textContent = pending;
             document.getElementById('highPriority').textContent = highPriority;
-        }
+        };
 
-        // MARCAR TAREA COMPLETA
-        async function toggleTask(id) {
+        window.toggleTask = async function(id) {
             const task = state.tasks.find(t => t.id === id);
             if (task) {
                 task.completada = !task.completada;
-                await saveTask(task);
+                await window.saveTask(task);
             }
-        }
+        };
 
-        // CHAT - AGREGAR MENSAJE
-        function addMessageToChat(role, text) {
+        window.addMessageToChat = function(role, text) {
             state.chatHistory.push({ role, text });
             const messagesDiv = document.getElementById('messages');
             const messageEl = document.createElement('div');
@@ -590,27 +258,24 @@
             messageEl.textContent = text;
             messagesDiv.appendChild(messageEl);
             setTimeout(() => messagesDiv.scrollTop = messagesDiv.scrollHeight, 0);
-        }
+        };
 
-        // ENVIAR MENSAJE
-        function sendMessage() {
+        window.sendMessage = function() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             if (!message) return;
-            addMessageToChat('user', message);
+            window.addMessageToChat('user', message);
             input.value = '';
-            processUserMessage(message.toLowerCase());
-        }
+            window.processUserMessage(message.toLowerCase());
+        };
 
-        // PROCESAR MENSAJE
-        function processUserMessage(message) {
+        window.processUserMessage = function(message) {
             let response = '';
-
             if (message.includes('agregar') || message.includes('tarea')) {
                 const taskTitle = prompt('¿Cuál es la tarea?');
                 if (taskTitle) {
                     const priority = prompt('Prioridad (high/medium/low)?', 'medium') || 'medium';
-                    saveTask({ titulo: taskTitle, prioridad: priority, completada: false });
+                    window.saveTask({ titulo: taskTitle, prioridad: priority, completada: false });
                     response = `✅ Tarea agregada: ${taskTitle}`;
                 }
             }
@@ -619,17 +284,17 @@
                 if (title) {
                     const time = prompt('Hora:');
                     const attendees = prompt('Participantes:');
-                    saveMeeting({ titulo: title, hora: time, participantes: attendees });
+                    window.saveMeeting({ titulo: title, hora: time, participantes: attendees });
                     response = `📅 Reunión: ${title}`;
                 }
             }
-            else if (message.includes('diario') || message.includes('evalúa')) {
+            else if (message.includes('diario')) {
                 const total = state.tasks.length;
                 const completed = state.tasks.filter(t => t.completada).length;
                 const pending = total - completed;
                 response = `📊 Hoy:\n• ${total} tareas\n• ${completed} completadas\n• ${pending} pendientes`;
             }
-            else if (message.includes('resumen') || message.includes('reuniones')) {
+            else if (message.includes('resumen')) {
                 response = state.meetings.length === 0 ? '📭 Sin reuniones' : '📋 ' + state.meetings.map(m => `${m.titulo} (${m.hora})`).join('\n');
             }
             else if (message.includes('urgente')) {
@@ -643,44 +308,35 @@
             else {
                 response = 'Puedo ayudarte con:\n• Agregar tareas\n• Reuniones\n• Evaluar tu día';
             }
+            setTimeout(() => window.addMessageToChat('assistant', response), 300);
+        };
 
-            setTimeout(() => addMessageToChat('assistant', response), 300);
-        }
-
-        // COMANDO RÁPIDO
-        function quickCommand(cmd) {
-            const commands = {
-                'diario': 'Evalúa mi día',
-                'resumen': 'Resumen de reuniones',
-                'siguiente': 'Qué sigue?',
-                'urgente': 'Tareas urgentes'
-            };
+        window.quickCommand = function(cmd) {
+            const commands = {'diario': 'Evalúa mi día', 'resumen': 'Resumen de reuniones', 'siguiente': 'Qué sigue?', 'urgente': 'Tareas urgentes'};
             const input = document.getElementById('chatInput');
             input.value = commands[cmd];
-            sendMessage();
-        }
+            window.sendMessage();
+        };
 
-        // MENÚ AGREGAR
-        function showAddMenu() {
+        window.showAddMenu = function() {
             const choice = prompt('¿Qué deseas agregar?\n1 = Tarea\n2 = Reunión');
             if (choice === '1') {
                 const title = prompt('Título:');
                 if (title) {
                     const priority = prompt('Prioridad (high/medium/low)?', 'medium') || 'medium';
-                    saveTask({ titulo: title, prioridad: priority, completada: false });
+                    window.saveTask({ titulo: title, prioridad: priority, completada: false });
                 }
             } else if (choice === '2') {
                 const title = prompt('Título:');
                 if (title) {
                     const time = prompt('Hora:');
                     const attendees = prompt('Participantes:');
-                    saveMeeting({ titulo: title, hora: time, participantes: attendees });
+                    window.saveMeeting({ titulo: title, hora: time, participantes: attendees });
                 }
             }
-        }
+        };
 
-        // INICIAR
-        init();
+        window.init();
     </script>
 </body>
 </html>
