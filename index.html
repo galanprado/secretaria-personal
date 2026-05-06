@@ -23,44 +23,37 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        .section { margin-bottom: 25px; }
-        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #333; }
-        
         .task-item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; gap: 12px; border-left: 4px solid #667eea; }
         .task-item.done { opacity: 0.6; border-left-color: #28a745; }
         .task-item.done .task-title { text-decoration: line-through; }
         .task-item input { width: 20px; height: 20px; cursor: pointer; }
         .task-title { flex: 1; font-size: 14px; }
-        .priority { padding: 3px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; }
-        .high { background: #ff6b6b; color: white; }
+        .priority { padding: 3px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; color: white; }
+        .high { background: #ff6b6b; }
         .medium { background: #ffc107; color: #333; }
-        .low { background: #28a745; color: white; }
+        .low { background: #28a745; }
         .del { background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        
-        .meeting-item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #667eea; }
-        .meeting-title { font-weight: 600; margin-bottom: 5px; }
-        .meeting-info { font-size: 12px; color: #666; }
-        
-        .empty { color: #999; text-align: center; padding: 30px; font-style: italic; }
         
         .summary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         .stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
         .stat:last-child { border-bottom: none; }
         
-        .chat-box { display: flex; flex-direction: column; gap: 10px; }
-        .messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; min-height: 300px; }
+        .empty { color: #999; text-align: center; padding: 30px; font-style: italic; }
+        
+        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 32px; box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        
+        .messages { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; min-height: 300px; }
         .msg { padding: 12px; border-radius: 12px; max-width: 80%; font-size: 14px; }
         .user-msg { align-self: flex-end; background: #667eea; color: white; }
         .bot-msg { align-self: flex-start; background: #f0f0f0; color: #333; }
         
-        .input-area { display: flex; gap: 8px; }
+        .input-area { display: flex; gap: 8px; margin-top: 15px; }
         .input-area input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 20px; font-size: 14px; }
-        .input-area button { width: 40px; height: 40px; background: #667eea; color: white; border: none; border-radius: 50%; cursor: pointer; font-weight: 600; }
+        .input-area button { width: 40px; height: 40px; background: #667eea; color: white; border: none; border-radius: 50%; cursor: pointer; }
         
-        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .action-btn { padding: 10px; background: white; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 12px; }
-        
-        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 32px; box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        .meeting-item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #667eea; }
+        .meeting-title { font-weight: 600; margin-bottom: 5px; }
+        .meeting-info { font-size: 12px; color: #666; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -77,7 +70,6 @@
         </div>
 
         <div class="content">
-            <!-- TAREAS -->
             <div id="tareas" class="tab-content active">
                 <div class="summary">
                     <div class="stat"><span>Total:</span><strong id="total">0</strong></div>
@@ -87,25 +79,15 @@
                 <div id="tasksList"></div>
             </div>
 
-            <!-- REUNIONES -->
             <div id="reuniones" class="tab-content">
                 <div id="meetingsList"></div>
             </div>
 
-            <!-- CHAT -->
             <div id="chat" class="tab-content">
-                <div class="actions">
-                    <button class="action-btn" onclick="app.quickCmd('diario')">📋 Mi día</button>
-                    <button class="action-btn" onclick="app.quickCmd('siguiente')">⏭️ Qué sigue</button>
-                    <button class="action-btn" onclick="app.quickCmd('urgente')">🔴 Urgentes</button>
-                    <button class="action-btn" onclick="app.quickCmd('resumen')">📝 Reuniones</button>
-                </div>
-                <div class="chat-box">
-                    <div class="messages" id="messages"></div>
-                    <div class="input-area">
-                        <input type="text" id="input" placeholder="Escribe aquí..." onkeypress="if(event.key==='Enter') app.sendMsg()">
-                        <button onclick="app.sendMsg()">➤</button>
-                    </div>
+                <div class="messages" id="messages"></div>
+                <div class="input-area">
+                    <input type="text" id="input" placeholder="Escribe aquí..." onkeypress="if(event.key==='Enter') app.sendMsg()">
+                    <button onclick="app.sendMsg()">➤</button>
                 </div>
             </div>
         </div>
@@ -117,23 +99,25 @@
         const app = {
             supabase: null,
             data: { tasks: [], meetings: [] },
-            deviceId: localStorage.getItem('deviceId') || 'device_' + Math.random().toString(36).substr(2, 9),
 
             async init() {
-                localStorage.setItem('deviceId', this.deviceId);
-                
                 const SUPABASE_URL = 'https://epfqrdjzvtymbaprtwtrvz.supabase.co';
                 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwZnFyZGp6dnR5bWJhcHJ0d3RydnoiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcxNDk4NjMyMiwiZXhwIjoxNzMwNTM4MzIyfQ.7bI5YtdTZTNFYkMgSE4nfO8R3cXnPsWDCW1pf3Ks5YU';
                 
                 try {
                     this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    
+                    // Autenticar como usuario anónimo
+                    const { data, error } = await this.supabase.auth.signInAnonymously();
+                    if (error) throw error;
+                    
                     await this.loadData();
                     this.setupRealtimeListeners();
                     this.updateStatus('✅ Conectado');
-                    this.addMsg('bot', '¡Hola! Presiona + para agregar tareas o reuniones. Los cambios se sincronizan en tiempo real.');
+                    this.addMsg('bot', '¡Hola! Presiona + para agregar tareas. Los cambios se sincronizan en tiempo real.');
                 } catch (error) {
                     console.error('Error:', error);
-                    this.updateStatus('❌ Error de conexión');
+                    this.updateStatus('❌ Error: ' + error.message);
                 }
             },
 
@@ -157,22 +141,26 @@
                     this.updateStatus('✅ Conectado');
                 } catch (error) {
                     console.error('Error cargando:', error);
-                    this.updateStatus('❌ Error');
+                    this.updateStatus('❌ Error: ' + error.message);
                 }
             },
 
             setupRealtimeListeners() {
-                this.supabase.channel('tareas')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'tareas' }, () => {
-                        this.loadData();
-                    })
-                    .subscribe();
+                try {
+                    this.supabase.channel('tareas')
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'tareas' }, () => {
+                            this.loadData();
+                        })
+                        .subscribe();
 
-                this.supabase.channel('reuniones')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'reuniones' }, () => {
-                        this.loadData();
-                    })
-                    .subscribe();
+                    this.supabase.channel('reuniones')
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'reuniones' }, () => {
+                            this.loadData();
+                        })
+                        .subscribe();
+                } catch (error) {
+                    console.error('Error en listeners:', error);
+                }
             },
 
             async addNew() {
@@ -186,9 +174,10 @@
                                 .from('tareas')
                                 .insert([{ titulo: title, prioridad: priority, completada: false }]);
                             if (error) throw error;
+                            this.addMsg('bot', `✅ Tarea agregada: ${title}`);
                         } catch (error) {
                             console.error('Error:', error);
-                            alert('Error al agregar tarea');
+                            this.addMsg('bot', `❌ Error: ${error.message}`);
                         }
                     }
                 } else if (type === '2') {
@@ -201,9 +190,10 @@
                                 .from('reuniones')
                                 .insert([{ titulo: title, hora: time, participantes: people }]);
                             if (error) throw error;
+                            this.addMsg('bot', `📅 Reunión agregada: ${title}`);
                         } catch (error) {
                             console.error('Error:', error);
-                            alert('Error al agregar reunión');
+                            this.addMsg('bot', `❌ Error: ${error.message}`);
                         }
                     }
                 }
@@ -249,13 +239,7 @@
             },
 
             render() {
-                this.renderTasks();
-                this.renderMeetings();
-                this.updateStats();
-            },
-
-            renderTasks() {
-                const html = this.data.tasks.length ? this.data.tasks.map(t => `
+                const tasks = this.data.tasks.length ? this.data.tasks.map(t => `
                     <div class="task-item ${t.completada ? 'done' : ''}">
                         <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="app.toggleTask(${t.id})">
                         <span class="task-title">${t.titulo}</span>
@@ -263,21 +247,17 @@
                         <button class="del" onclick="app.deleteTask(${t.id})">×</button>
                     </div>
                 `).join('') : '<div class="empty">Sin tareas 🎉</div>';
-                document.getElementById('tasksList').innerHTML = html;
-            },
+                document.getElementById('tasksList').innerHTML = tasks;
 
-            renderMeetings() {
-                const html = this.data.meetings.length ? this.data.meetings.map(m => `
+                const meetings = this.data.meetings.length ? this.data.meetings.map(m => `
                     <div class="meeting-item">
                         <div class="meeting-title">${m.titulo}</div>
                         <div class="meeting-info">${m.hora} • ${m.participantes}</div>
-                        <button class="del" style="margin-top: 10px;" onclick="app.deleteMeeting(${m.id})">Eliminar</button>
+                        <button class="del" onclick="app.deleteMeeting(${m.id})">Eliminar</button>
                     </div>
                 `).join('') : '<div class="empty">Sin reuniones</div>';
-                document.getElementById('meetingsList').innerHTML = html;
-            },
+                document.getElementById('meetingsList').innerHTML = meetings;
 
-            updateStats() {
                 const total = this.data.tasks.length;
                 const done = this.data.tasks.filter(t => t.completada).length;
                 document.getElementById('total').textContent = total;
@@ -285,15 +265,15 @@
                 document.getElementById('pending').textContent = total - done;
             },
 
-            updateStatus(text) {
-                document.getElementById('status').textContent = text;
-            },
-
             switchTab(tab) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
                 document.getElementById(tab).classList.add('active');
                 event.target.classList.add('active');
+            },
+
+            updateStatus(text) {
+                document.getElementById('status').textContent = text;
             },
 
             addMsg(role, text) {
@@ -310,40 +290,14 @@
                 if (!msg) return;
                 this.addMsg('user', msg);
                 input.value = '';
-                this.processMsg(msg.toLowerCase());
-            },
-
-            processMsg(msg) {
+                
                 let response = '';
-                if (msg.includes('agregar') || msg.includes('tarea')) {
-                    response = 'Presiona el botón + para agregar una tarea.';
-                } else if (msg.includes('diario') || msg.includes('hoy')) {
-                    const total = this.data.tasks.length;
-                    const done = this.data.tasks.filter(t => t.completada).length;
-                    response = `📊 Hoy:\n${total} tareas\n${done} completadas\n${total - done} pendientes`;
-                } else if (msg.includes('siguiente') || msg.includes('próximo')) {
-                    const pending = this.data.tasks.filter(t => !t.completada);
-                    response = pending.length ? '⏭️ ' + pending.slice(0, 3).map(t => t.titulo).join(', ') : '✅ ¡Estás al día!';
-                } else if (msg.includes('urgente')) {
-                    const high = this.data.tasks.filter(t => t.prioridad === 'high' && !t.completada);
-                    response = high.length ? '🔴 ' + high.map(t => t.titulo).join(', ') : '✨ Sin urgentes';
-                } else if (msg.includes('resumen') || msg.includes('reunión')) {
-                    response = this.data.meetings.length ? '📋 ' + this.data.meetings.map(m => `${m.titulo} (${m.hora})`).join(', ') : '📭 Sin reuniones';
-                } else {
-                    response = 'Puedo ayudarte con tareas, reuniones y evaluar tu día. ¿Qué necesitas?';
-                }
+                if (msg.toLowerCase().includes('agregar')) response = 'Presiona + para agregar tareas';
+                else if (msg.toLowerCase().includes('hoy')) response = `📊 Hoy: ${this.data.tasks.length} tareas, ${this.data.tasks.filter(t => t.completada).length} completadas`;
+                else if (msg.toLowerCase().includes('urgente')) response = this.data.tasks.filter(t => t.prioridad === 'high' && !t.completada).length ? '🔴 ' + this.data.tasks.filter(t => t.prioridad === 'high' && !t.completada).map(t => t.titulo).join(', ') : '✨ Sin urgentes';
+                else response = 'Puedo ayudarte con tareas y reuniones. ¿Qué necesitas?';
+                
                 setTimeout(() => this.addMsg('bot', response), 300);
-            },
-
-            quickCmd(cmd) {
-                const cmds = {
-                    'diario': 'Evalúa mi día',
-                    'siguiente': 'Qué sigue?',
-                    'urgente': 'Tareas urgentes',
-                    'resumen': 'Resumen de reuniones'
-                };
-                document.getElementById('input').value = cmds[cmd];
-                this.sendMsg();
             }
         };
 
